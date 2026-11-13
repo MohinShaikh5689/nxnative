@@ -51,6 +51,10 @@ class FindTest(unittest.TestCase):
         call, vt, slot, why = find(image(slot=26, relocated=True))
         self.assertEqual((call, vt, slot), ((CALLER + 4,), VT, 26), why)
 
+    def test_unreal_4_2x_layout(self):   # DRAGON BALL Z: KAKAROT (UE 4.22 to 4.25): the getter at slot 17, no TryMalloc / TryRealloc
+        call, vt, slot, why = find(image(slot=17))
+        self.assertEqual((call, vt, slot), ((CALLER + 4,), VT, 17), why)
+
     def test_no_name_is_not_red(self):
         call, _, _, why = find(image(name=False))
         self.assertIsNone(call)

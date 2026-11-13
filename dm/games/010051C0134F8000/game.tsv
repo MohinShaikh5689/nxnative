@@ -1,0 +1,55 @@
+# DRAGON BALL Z: KAKAROT + A NEW POWER AWAKENS SET: CyberConnect2, Unreal Engine 4.22 to 4.25 (version 8 paks, FMallocBinned3), SDK 9.3.1, NVN, movies through the SDK's movie decoder; 1.00 (v0)
+# Started from the NSP script's provisional profile (dm/games/profile_guess.py) and brought up on an iPhone 17 (iOS 27.2) from a Windows build
+# Format: see dm/games/README.md
+
+# ---- Identity ----
+title_id	010051C0134F8000
+program_id	010051C0134F8000
+
+# ---- App ----
+# Game name: only a label for profile listings and the Mac window title; the iOS app name is the game name in the base NSP, and the bundle ID comes from the base game title ID (build_ipa.sh / NSP script)
+name	DRAGON BALL Z: KAKAROT + A NEW POWER AWAKENS SET
+ipa	DragonBallZKakarotANewPowerAwakensSet.ipa
+app_category	public.app-category.games
+
+# ---- Versions ----
+build	v0	1.00	main=98217279aaf870fadab6445062e2f36d	subsdk0=5a7ada8dd7447c10aa244944f64d0aff	sdk=ad3fdfbd62a5f4b082d385ffe420d440
+package	v0
+shader_versions	v0
+
+# ---- Files ----
+# load order as on Horizon: main, subsdk*, sdk (subsdk0 = NintendoSDK_movie: the logos and the opening are movies)
+modules	main subsdk0 sdk
+romfs_marker	AT/Content/Paks/pakchunk0-Switch.pak
+zip_store	.awb:.pak:.ttf:.usm:.metallib
+
+# ---- Memory ----
+# Unreal Engine 4.2x: nninitStartup needs virtual address memory and reserves one address region for the engine, 62 GB by default. This build reserves it only when
+# -SwitchVirtualAddressSpaceSize= is absent (main+0x1aa9b64: ldr of the size variable, cbz to the 62 GB default and nn::os::AllocateAddressRegion at main+0x1aa9d44), as Pikmin 4's:
+# with the option the region's base stayed 0 and the first commit, AllocateMemoryPages(0 + offset) (main+0x1aaa9e0), failed with 0x7 into Unreal's LowLevelFatalError (line 919), so no
+# game_args. The rewriter's engine-wide gate on the store of its size (dm/tools/ue_region.py, the store at main+0x1aa9d40) gives it what the alias region has room for. Its allocator,
+# an FMallocBinned3 made on the first allocation (GCreateMalloc, main+0x1aaa350), would cut 37 GB of pools out of that region; the constructor call (main+0x1aaa368) is cut and the
+# host runs Unreal's heap on a malloc zone outside the guest block (the rewriter's engine-wide cut, dm/tools/ue_malloc.py; hle_uemalloc.c layout UE4_24, the name getter at slot 17).
+# The region sits in Engage's 5 GB block (256 MB in front + 4.375 GB alias region + 256 MB stack region + 128 MB heap region), as Pikmin 4's and FINAL FANTASY RESONANCE's.
+# Application pool 2 GB: Unreal sizes its page cache from the pool QueryMemoryInfo reports (1.87 GB of a 2 GB pool), and the iPhone run that played was made with it
+mem_reserve	0x140000000
+mem_alias	0x118000000
+mem_stack	0x10000000
+app_pool	0x80000000
+# the NPDM declares 16 MB of system resource
+sys_resource	0x1000000
+
+# ---- Frame rate ----
+# 60 fps (30 on the Switch): the host writes t.MaxFPS 60 and rhi.SyncInterval 1 into its console variables, which the rewriter finds by name (dm/tools/ue_cvar.py: t.MaxFPS at
+# main+0x88177d8, rhi.SyncInterval at main+0x871f080), so the game asks for present interval 1 itself. Unreal steps the game by the time that really passed. The player's Frame rate
+# (or DM_FPS_TARGET=30 in Documents/env.txt on the iPhone) keeps the game's 30 and saves power
+fps_target	60
+
+# ---- Input ----
+# A 3D action game with a free camera on the right stick: the 3D pad layout
+pad_layout	full
+
+# ---- Shader split ----
+# The engine's global shaders and the game's material shaders, inline in the cooked packages of the version 8 paks (docs/reference/shaders.md, Unreal Engine 4.22 to 4.25 paks)
+shader_groups	ShaderArchive-Global-=global ShaderArchive-=game
+shader_note	DRAGON BALL Z: KAKAROT + A NEW POWER AWAKENS SET shaders (provisional profile)
